@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -8,6 +13,9 @@ import {
 } from "@/components/ui/card";
 
 export default function Home() {
+  const router = useRouter();
+  const [token, setToken] = useState("");
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
       <Card className="w-full max-w-lg text-center">
@@ -21,10 +29,32 @@ export default function Home() {
             place.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button size="lg" className="mt-4">
-            Get Started
-          </Button>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2 mt-4">
+            <Input
+              placeholder="Enter your invite token"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && token.trim()) {
+                  router.push(`/onboard/${token.trim()}`);
+                }
+              }}
+            />
+            <Button
+              size="lg"
+              onClick={() => {
+                if (token.trim()) {
+                  router.push(`/onboard/${token.trim()}`);
+                }
+              }}
+            >
+              Get Started
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Enter the invite token from your onboarding email, or use the full link provided.
+          </p>
         </CardContent>
       </Card>
     </main>
