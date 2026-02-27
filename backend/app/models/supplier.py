@@ -46,6 +46,7 @@ class Supplier(Base):
     npi: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     primary_contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    primary_contact_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     primary_contact_email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     primary_contact_phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 

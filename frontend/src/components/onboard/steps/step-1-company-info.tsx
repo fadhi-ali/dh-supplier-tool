@@ -26,6 +26,7 @@ export function Step1CompanyInfo() {
   const [taxId, setTaxId] = useState("");
   const [npi, setNpi] = useState("");
   const [primaryContactName, setPrimaryContactName] = useState("");
+  const [primaryContactTitle, setPrimaryContactTitle] = useState("");
   const [primaryContactEmail, setPrimaryContactEmail] = useState("");
   const [primaryContactPhone, setPrimaryContactPhone] = useState("");
   const [escalationContactName, setEscalationContactName] = useState("");
@@ -41,6 +42,7 @@ export function Step1CompanyInfo() {
     setTaxId(formatTaxId(supplier.tax_id ?? ""));
     setNpi(supplier.npi ?? "");
     setPrimaryContactName(supplier.primary_contact_name ?? "");
+    setPrimaryContactTitle(supplier.primary_contact_title ?? "");
     setPrimaryContactEmail(supplier.primary_contact_email ?? "");
     setPrimaryContactPhone(supplier.primary_contact_phone ?? "");
     setEscalationContactName(supplier.escalation_contact_name ?? "");
@@ -286,6 +288,19 @@ export function Step1CompanyInfo() {
                 {errors.primary_contact_name}
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="primary_contact_title">Title</Label>
+            <Input
+              id="primary_contact_title"
+              value={primaryContactTitle}
+              onChange={(e) => setPrimaryContactTitle(e.target.value)}
+              onBlur={() =>
+                handleBlur("primary_contact_title", primaryContactTitle)
+              }
+              placeholder="e.g. CEO, Operations Manager"
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

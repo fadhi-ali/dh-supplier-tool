@@ -8,6 +8,7 @@ export interface Supplier {
   tax_id: string | null;
   npi: string | null;
   primary_contact_name: string | null;
+  primary_contact_title: string | null;
   primary_contact_email: string | null;
   primary_contact_phone: string | null;
   escalation_contact_name: string | null;
