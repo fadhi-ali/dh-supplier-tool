@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+.next/
+out/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Docker volumes
+pgdata/
+
+# Claude Code
+.claude/
+
+# Logs
+*.log
