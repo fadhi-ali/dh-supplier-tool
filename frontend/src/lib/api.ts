@@ -314,6 +314,7 @@ export interface AdminSupplierDetail {
   primary_contact_email: string | null;
   primary_contact_phone: string | null;
   escalation_contact_name: string | null;
+  escalation_contact_title: string | null;
   escalation_contact_email: string | null;
   escalation_contact_phone: string | null;
   tier: string | null;

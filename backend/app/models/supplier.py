@@ -51,6 +51,7 @@ class Supplier(Base):
     primary_contact_phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     escalation_contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    escalation_contact_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     escalation_contact_email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     escalation_contact_phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 

@@ -30,6 +30,7 @@ export function Step1CompanyInfo() {
   const [primaryContactEmail, setPrimaryContactEmail] = useState("");
   const [primaryContactPhone, setPrimaryContactPhone] = useState("");
   const [escalationContactName, setEscalationContactName] = useState("");
+  const [escalationContactTitle, setEscalationContactTitle] = useState("");
   const [escalationContactEmail, setEscalationContactEmail] = useState("");
   const [escalationContactPhone, setEscalationContactPhone] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -46,6 +47,7 @@ export function Step1CompanyInfo() {
     setPrimaryContactEmail(supplier.primary_contact_email ?? "");
     setPrimaryContactPhone(supplier.primary_contact_phone ?? "");
     setEscalationContactName(supplier.escalation_contact_name ?? "");
+    setEscalationContactTitle(supplier.escalation_contact_title ?? "");
     setEscalationContactEmail(supplier.escalation_contact_email ?? "");
     setEscalationContactPhone(supplier.escalation_contact_phone ?? "");
   }, [supplier]);
@@ -367,6 +369,19 @@ export function Step1CompanyInfo() {
                 handleBlur("escalation_contact_name", escalationContactName)
               }
               placeholder="Full name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="escalation_contact_title">Title</Label>
+            <Input
+              id="escalation_contact_title"
+              value={escalationContactTitle}
+              onChange={(e) => setEscalationContactTitle(e.target.value)}
+              onBlur={() =>
+                handleBlur("escalation_contact_title", escalationContactTitle)
+              }
+              placeholder="e.g. CEO, Operations Manager"
             />
           </div>
 
