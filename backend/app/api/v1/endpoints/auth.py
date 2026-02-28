@@ -11,8 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.models.supplier import Supplier
-from app.api.deps import create_access_token
+from app.api.deps import create_access_token, get_current_supplier
 from app.schemas.auth import (
+    RefreshTokenResponse,
     SendMagicLinkRequest,
     SendMagicLinkResponse,
     VerifyMagicLinkRequest,
@@ -104,3 +105,12 @@ async def verify_magic_link(body: VerifyMagicLinkRequest, db: AsyncSession = Dep
         access_token=access_token,
         supplier_id=supplier.id,
     )
+
+
+@router.post("/refresh", response_model=RefreshTokenResponse)
+async def refresh_token(
+    current_supplier: Supplier = Depends(get_current_supplier),
+):
+    """Exchange a valid JWT for a fresh one with extended expiry."""
+    new_token = create_access_token(current_supplier.id)
+    return RefreshTokenResponse(access_token=new_token)

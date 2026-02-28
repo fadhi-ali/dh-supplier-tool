@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,12 +20,27 @@ export function useAdminPassword() {
   return ctx.password;
 }
 
+const SESSION_KEY = "dh_admin_password";
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Restore from sessionStorage on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem(SESSION_KEY);
+    if (stored) {
+      adminApi.listSuppliers(stored).then(() => {
+        setPassword(stored);
+        setAuthenticated(true);
+      }).catch(() => {
+        sessionStorage.removeItem(SESSION_KEY);
+      });
+    }
+  }, []);
 
   async function handleLogin() {
     if (!input.trim()) return;
@@ -35,6 +50,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       await adminApi.listSuppliers(input);
       setPassword(input);
       setAuthenticated(true);
+      sessionStorage.setItem(SESSION_KEY, input);
     } catch {
       setError("Invalid password");
     } finally {

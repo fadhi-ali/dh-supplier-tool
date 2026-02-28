@@ -34,3 +34,8 @@ class VerifyMagicLinkResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     supplier_id: UUID
+
+
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

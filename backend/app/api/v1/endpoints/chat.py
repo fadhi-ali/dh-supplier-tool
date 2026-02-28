@@ -123,6 +123,15 @@ async def chat(
         current_step=body.current_step,
     )
 
+    # Build messages with history
+    messages: list[dict[str, str]] = []
+    if body.history:
+        # Limit to last 20 messages to control token usage
+        for msg in body.history[-20:]:
+            if msg.role in ("user", "assistant"):
+                messages.append({"role": msg.role, "content": msg.content})
+    messages.append({"role": "user", "content": body.message})
+
     # Call Claude
     try:
         client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -130,7 +139,7 @@ async def chat(
             model="claude-sonnet-4-20250514",
             max_tokens=1024,
             system=system_prompt,
-            messages=[{"role": "user", "content": body.message}],
+            messages=messages,
         )
 
         reply = ""

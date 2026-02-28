@@ -118,10 +118,17 @@ export function AiAssistantButton() {
       setIsLoading(true);
 
       try {
+        // Send conversation history for multi-turn context
+        const history = messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
         const response = await api.sendChatMessage(
           supplier.id,
           text.trim(),
-          currentStep
+          currentStep,
+          history
         );
 
         const assistantMsg: ChatMessage = {
@@ -148,7 +155,7 @@ export function AiAssistantButton() {
         setIsLoading(false);
       }
     },
-    [supplier?.id, currentStep, isLoading, voiceEnabled, speak]
+    [supplier?.id, currentStep, isLoading, voiceEnabled, speak, messages]
   );
 
   const toggleListening = useCallback(() => {

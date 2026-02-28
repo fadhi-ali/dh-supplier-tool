@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import uuid as uuid_mod
 from uuid import UUID
@@ -10,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.database import get_db
+from app.database import get_db, async_session
 from app.models.supplier import Supplier
 from app.models.catalog_upload import CatalogUpload, ProcessingStatus
 from app.models.product import Product
@@ -26,7 +27,28 @@ from app.schemas.product import (
 )
 from app.services.catalog_processor import process_catalog
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["products"])
+
+
+async def _safe_process_catalog(upload_id: UUID, supplier_id: UUID) -> None:
+    """Wrapper around process_catalog that marks the upload as failed on unhandled errors."""
+    try:
+        await process_catalog(upload_id, supplier_id)
+    except Exception:
+        logger.exception("Catalog processing failed for upload %s", upload_id)
+        try:
+            async with async_session() as db:
+                result = await db.execute(
+                    select(CatalogUpload).where(CatalogUpload.id == upload_id)
+                )
+                upload = result.scalar_one_or_none()
+                if upload and upload.processing_status != ProcessingStatus.failed:
+                    upload.processing_status = ProcessingStatus.failed
+                    await db.commit()
+        except Exception:
+            logger.exception("Failed to mark upload %s as failed", upload_id)
 
 
 @router.post("/suppliers/{supplier_id}/products/upload", response_model=CatalogUploadResponse)
@@ -62,8 +84,8 @@ async def upload_catalog(
     await db.commit()
     await db.refresh(upload)
 
-    # Trigger async processing
-    asyncio.create_task(process_catalog(upload.id, supplier_id))
+    # Trigger async processing with safety wrapper
+    asyncio.create_task(_safe_process_catalog(upload.id, supplier_id))
 
     return CatalogUploadResponse(
         upload_id=upload.id,

@@ -71,6 +71,11 @@ export const api = {
       { method: "POST", body: JSON.stringify({ token }) }
     ),
 
+  refreshToken: () =>
+    request<{ access_token: string; token_type: string }>("/auth/refresh", {
+      method: "POST",
+    }),
+
   // Supplier
   getSupplier: (id: string) =>
     request<import("@/types/supplier").Supplier>(`/suppliers/${id}`),
@@ -199,13 +204,14 @@ export const api = {
     request<void>(`/service-areas/${areaId}`, { method: "DELETE" }),
 
   // Chat
-  sendChatMessage: (supplierId: string, message: string, currentStep: number) =>
+  sendChatMessage: (supplierId: string, message: string, currentStep: number, history?: { role: string; content: string }[]) =>
     request<{ message: string }>("/chat", {
       method: "POST",
       body: JSON.stringify({
         supplier_id: supplierId,
         message,
         current_step: currentStep,
+        history: history || [],
       }),
     }),
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,14 @@ export function Step9StripeSetup() {
   }, [supplier]);
 
   const stripeStatus = getStripeStatus();
+
+  const onValidate = useCallback(() => {
+    if (stripeStatus !== "complete") {
+      toast.error("Please complete Stripe setup before continuing.");
+      return false;
+    }
+    return true;
+  }, [stripeStatus]);
 
   // Poll check-status every 5 seconds while step is active and not complete
   useEffect(() => {
@@ -185,7 +194,7 @@ export function Step9StripeSetup() {
         </CardContent>
       </Card>
 
-      <StepNavigation />
+      <StepNavigation onValidate={onValidate} />
     </div>
   );
 }
