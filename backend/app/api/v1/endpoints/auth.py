@@ -68,10 +68,8 @@ async def send_magic_link(body: SendMagicLinkRequest, db: AsyncSession = Depends
         )
         await db.commit()
 
-        # Log to console instead of sending real email
-        logger.info("=" * 60)
-        logger.info("MAGIC LINK TOKEN for %s: %s", supplier.email, token)
-        logger.info("=" * 60)
+        from app.services.notifications import send_magic_link_email
+        send_magic_link_email(supplier.email, token)
 
     # Always return success to prevent email enumeration
     return SendMagicLinkResponse(message="If the email is registered, a magic link has been sent.")

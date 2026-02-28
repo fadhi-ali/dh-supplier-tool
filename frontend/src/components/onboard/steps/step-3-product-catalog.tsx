@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -265,7 +266,7 @@ export function Step3ProductCatalog() {
       await api.updateProduct(product.id, updateData);
       await refreshProducts();
     } catch {
-      // Silently fail — product table will show stale data
+      toast.error("Failed to update product. Please try again.");
     }
   };
 
@@ -282,7 +283,7 @@ export function Step3ProductCatalog() {
       await api.updateProduct(product.id, { fulfillment_types: updated });
       await refreshProducts();
     } catch {
-      // Silently fail
+      toast.error("Failed to update fulfillment type.");
     }
   };
 
@@ -292,8 +293,9 @@ export function Step3ProductCatalog() {
     try {
       await api.approveProducts(supplier.id);
       await refreshProducts();
+      toast.success("Catalog approved successfully.");
     } catch {
-      // Handle error silently
+      toast.error("Failed to approve catalog. Please try again.");
     } finally {
       setApproving(false);
     }
@@ -322,7 +324,7 @@ export function Step3ProductCatalog() {
       setNewProduct(emptyProductForm);
       setAddDialogOpen(false);
     } catch {
-      // Handle error silently
+      toast.error("Failed to add product. Please try again.");
     }
   };
 
@@ -331,7 +333,7 @@ export function Step3ProductCatalog() {
       await api.deleteProduct(productId);
       await refreshProducts();
     } catch {
-      // Handle error silently
+      toast.error("Failed to delete product.");
     }
   };
 

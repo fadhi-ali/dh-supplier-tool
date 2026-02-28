@@ -273,6 +273,18 @@ export const adminApi = {
       total: number;
     }>(`/admin/suppliers${status && status !== "all" ? `?status=${status}` : ""}`, password),
 
+  inviteSupplier: (password: string, email: string) =>
+    adminRequest<{
+      id: string;
+      email: string;
+      invite_token: string;
+      status: string;
+      current_step: number;
+    }>("/admin/suppliers/invite", password, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
   getSupplier: (password: string, id: string) =>
     adminRequest<AdminSupplierDetail>(`/admin/suppliers/${id}`, password),
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { useAdminPassword } from "../../layout";
 import { adminApi, type AdminSupplierDetail } from "@/lib/api";
@@ -123,7 +124,9 @@ export default function AdminSupplierDetailPage() {
     setLoading(true);
     adminApi.getSupplier(password, id)
       .then(setSupplier)
-      .catch(() => {})
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : "Failed to load supplier details.");
+      })
       .finally(() => setLoading(false));
   }, [password, id]);
 
@@ -134,10 +137,11 @@ export default function AdminSupplierDetailPage() {
   ) => {
     setActionLoading(true);
     try {
-      await action();
+      const result = await action();
+      toast.success(result.message);
       load();
-    } catch {
-      // error
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -155,12 +159,13 @@ export default function AdminSupplierDetailPage() {
         reviewer_name: reviewerName,
         corrections,
       });
+      toast.success("Corrections requested successfully.");
       setCorrectionModalOpen(false);
       setSelectedSteps({});
       setReviewerName("");
       load();
-    } catch {
-      // error
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send corrections.");
     } finally {
       setActionLoading(false);
     }

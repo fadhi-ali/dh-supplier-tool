@@ -13,7 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Plus, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STATUS_TABS = [
@@ -54,20 +57,123 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
+  // Invite state
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteResult, setInviteResult] = useState<{ invite_token: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function loadSuppliers() {
     setLoading(true);
     adminApi
       .listSuppliers(password, activeTab)
       .then((data) => setSuppliers(data.suppliers))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadSuppliers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [password, activeTab]);
+
+  async function handleInvite() {
+    if (!inviteEmail.trim()) return;
+    setInviteLoading(true);
+    setInviteError(null);
+    try {
+      const result = await adminApi.inviteSupplier(password, inviteEmail.trim());
+      setInviteResult(result);
+      loadSuppliers();
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "Failed to create invite");
+    } finally {
+      setInviteLoading(false);
+    }
+  }
+
+  function getInviteLink() {
+    if (!inviteResult) return "";
+    const base = typeof window !== "undefined" ? window.location.origin : "";
+    return `${base}/onboard/${inviteResult.invite_token}`;
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(getInviteLink());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function resetInvite() {
+    setShowInvite(false);
+    setInviteEmail("");
+    setInviteError(null);
+    setInviteResult(null);
+    setCopied(false);
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Supplier Submissions
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Supplier Submissions
+        </h1>
+        <Button onClick={() => { resetInvite(); setShowInvite(true); }}>
+          <Plus className="mr-2 h-4 w-4" /> Invite Supplier
+        </Button>
+      </div>
+
+      {/* Invite form */}
+      {showInvite && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Invite New Supplier</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {inviteResult ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Invite created. Share this link with the supplier:
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded bg-muted px-3 py-2 text-sm break-all">
+                    {getInviteLink()}
+                  </code>
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <Button variant="outline" size="sm" onClick={resetInvite}>
+                  Done
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="supplier@company.com"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleInvite(); }}
+                  />
+                  <Button onClick={handleInvite} disabled={inviteLoading}>
+                    {inviteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Invite"}
+                  </Button>
+                </div>
+                {inviteError && (
+                  <p className="text-sm text-destructive">{inviteError}</p>
+                )}
+                <Button variant="ghost" size="sm" onClick={resetInvite}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Status filter tabs */}
       <div className="flex gap-1 overflow-x-auto border-b">

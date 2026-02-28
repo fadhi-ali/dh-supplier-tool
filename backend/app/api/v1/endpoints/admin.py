@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
@@ -33,11 +34,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-ADMIN_PASSWORD = "doorbell-ops-2024"
-
-
 async def verify_admin(x_admin_password: str = Header(...)) -> None:
-    if x_admin_password != ADMIN_PASSWORD:
+    if x_admin_password != settings.ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Invalid admin password")
 
 
@@ -77,6 +75,41 @@ async def list_suppliers(
     return AdminSupplierListResponse(suppliers=items, total=len(items))
 
 
+@router.post("/suppliers/invite")
+async def invite_supplier(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
+    """Create a new supplier with an invite token."""
+    email = body.get("email", "").strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="A valid email is required")
+
+    existing = await db.execute(select(Supplier).where(Supplier.email == email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="A supplier with this email already exists")
+
+    invite_token = str(uuid.uuid4())
+    supplier = Supplier(
+        invite_token=invite_token,
+        email=email,
+        status=SupplierStatus.in_progress,
+        current_step=1,
+    )
+    db.add(supplier)
+    await db.commit()
+    await db.refresh(supplier)
+
+    return {
+        "id": str(supplier.id),
+        "email": supplier.email,
+        "invite_token": supplier.invite_token,
+        "status": supplier.status.value,
+        "current_step": supplier.current_step,
+    }
+
+
 @router.get("/suppliers/{supplier_id}", response_model=AdminSupplierDetail)
 async def get_supplier_detail(
     supplier_id: UUID,
@@ -108,9 +141,11 @@ async def get_supplier_detail(
         tax_id=supplier.tax_id,
         npi=supplier.npi,
         primary_contact_name=supplier.primary_contact_name,
+        primary_contact_title=supplier.primary_contact_title,
         primary_contact_email=supplier.primary_contact_email,
         primary_contact_phone=supplier.primary_contact_phone,
         escalation_contact_name=supplier.escalation_contact_name,
+        escalation_contact_title=supplier.escalation_contact_title,
         escalation_contact_email=supplier.escalation_contact_email,
         escalation_contact_phone=supplier.escalation_contact_phone,
         tier=supplier.tier.value if supplier.tier else None,

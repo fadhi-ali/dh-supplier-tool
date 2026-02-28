@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { SupplierContext, type CorrectionNote } from "@/hooks/use-supplier";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { api } from "@/lib/api";
@@ -55,14 +56,16 @@ export function SupplierProvider({
 
   useEffect(() => {
     if (supplier?.id) {
-      refreshProducts();
-      refreshPayers();
-      refreshExclusions();
-      refreshServiceAreas();
+      refreshProducts().catch(() => toast.error("Failed to load products."));
+      refreshPayers().catch(() => toast.error("Failed to load payers."));
+      refreshExclusions().catch(() => toast.error("Failed to load exclusions."));
+      refreshServiceAreas().catch(() => toast.error("Failed to load service areas."));
 
       // Load corrections if action_needed
       if (supplier.status === "action_needed") {
-        api.getCorrections(supplier.id).then(setCorrections).catch(() => {});
+        api.getCorrections(supplier.id).then(setCorrections).catch(() => {
+          toast.error("Failed to load corrections.");
+        });
       }
     }
   }, [supplier?.id, supplier?.status, refreshProducts, refreshPayers, refreshExclusions, refreshServiceAreas]);

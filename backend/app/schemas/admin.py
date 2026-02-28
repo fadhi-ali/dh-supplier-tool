@@ -105,9 +105,11 @@ class AdminSupplierDetail(BaseModel):
     tax_id: Optional[str] = None
     npi: Optional[str] = None
     primary_contact_name: Optional[str] = None
+    primary_contact_title: Optional[str] = None
     primary_contact_email: Optional[str] = None
     primary_contact_phone: Optional[str] = None
     escalation_contact_name: Optional[str] = None
+    escalation_contact_title: Optional[str] = None
     escalation_contact_email: Optional[str] = None
     escalation_contact_phone: Optional[str] = None
     tier: Optional[str] = None
