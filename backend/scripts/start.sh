@@ -3,7 +3,11 @@ set -e
 
 # Run database migrations
 echo "Running Alembic migrations..."
-PYTHONPATH=/app python -m alembic upgrade head
+PYTHONPATH=/app python -m alembic upgrade head 2>&1 || {
+  echo "Migration failed — stamping baseline at 001 and retrying..."
+  PYTHONPATH=/app python -m alembic stamp 001
+  PYTHONPATH=/app python -m alembic upgrade head
+}
 echo "Migrations complete."
 
 # Auto-seed if AUTO_SEED=true (for PR/test environments)
