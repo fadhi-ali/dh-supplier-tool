@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# Run database migrations
+echo "Running Alembic migrations..."
+alembic upgrade head
+echo "Migrations complete."
+
 # Auto-seed if AUTO_SEED=true (for PR/test environments)
 if [ "$AUTO_SEED" = "true" ]; then
   echo "AUTO_SEED enabled — running seed script..."
