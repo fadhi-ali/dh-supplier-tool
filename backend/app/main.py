@@ -33,10 +33,10 @@ app.include_router(api_router)
 async def _warn_missing_config():
     from app.config import settings
 
-    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
+    if not settings.RESEND_API_KEY:
         logger.warning(
-            "SMTP_USER / SMTP_PASSWORD not configured. "
-            "Magic link emails will be logged to the console only."
+            "RESEND_API_KEY not configured. "
+            "Emails will be logged to the console only."
         )
     if not settings.ANTHROPIC_API_KEY:
         logger.warning(

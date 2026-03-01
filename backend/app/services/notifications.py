@@ -1,17 +1,16 @@
 """
 Notification service for supplier onboarding events.
 
-Uses Gmail SMTP when SMTP_USER and SMTP_PASSWORD are configured.
+Uses Resend HTTP API when RESEND_API_KEY is configured.
 Falls back to console logging when not configured.
 """
 
 from __future__ import annotations
 
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import TYPE_CHECKING
+
+import httpx
 
 from app.config import settings
 
@@ -23,37 +22,32 @@ logger = logging.getLogger("notifications")
 
 
 def _send_email(to_email: str, subject: str, body_html: str) -> None:
-    """Send an email via SMTP or log to console as fallback."""
+    """Send an email via Resend or log to console as fallback."""
     logger.info("=" * 60)
     logger.info("EMAIL -> %s", to_email)
     logger.info("SUBJECT: %s", subject)
-    logger.info("BODY: %s", body_html)
     logger.info("=" * 60)
 
-    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        logger.info("SMTP not configured; email logged only.")
+    if not settings.RESEND_API_KEY:
+        logger.info("RESEND_API_KEY not configured; email logged only.")
         return
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["From"] = settings.FROM_EMAIL or settings.SMTP_USER
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body_html, "html"))
-
-        if settings.SMTP_PORT == 465:
-            with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                server.send_message(msg)
-        else:
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                server.send_message(msg)
-
+        resp = httpx.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+            json={
+                "from": settings.FROM_EMAIL,
+                "to": [to_email],
+                "subject": subject,
+                "html": body_html,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
         logger.info("Email sent successfully to %s", to_email)
     except Exception as e:
-        logger.error("Failed to send email via SMTP: %s", e)
+        logger.error("Failed to send email via Resend: %s", e)
 
 
 def send_magic_link_email(email: str, token: str) -> None:

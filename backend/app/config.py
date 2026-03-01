@@ -17,11 +17,8 @@ class Settings(BaseSettings):
     MAGIC_LINK_EXPIRATION_MINUTES: int = 15
     UPLOAD_DIR: str = os.path.join(_BASE_DIR, "uploads")
     ADMIN_PASSWORD: str = "doorbell-ops-2024"
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    FROM_EMAIL: str = ""
+    RESEND_API_KEY: str = ""
+    FROM_EMAIL: str = "onboarding@resend.dev"
 
     model_config = {"env_file": ".env"}
 
