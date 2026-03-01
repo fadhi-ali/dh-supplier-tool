@@ -1,12 +1,9 @@
 #!/bin/sh
 set -e
 
-# Ensure app module is importable
-export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}/app"
-
 # Run database migrations
 echo "Running Alembic migrations..."
-alembic upgrade head
+PYTHONPATH=/app python -m alembic upgrade head
 echo "Migrations complete."
 
 # Auto-seed if AUTO_SEED=true (for PR/test environments)
