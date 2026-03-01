@@ -106,7 +106,7 @@ export function EmailVerification({ email, supplierId, onVerified }: EmailVerifi
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Check the server console for the verification code (no real email sent yet).
+                  Check your email for the verification code.
                 </p>
               </div>
               {error && (

@@ -51,15 +51,17 @@ def _send_email(to_email: str, subject: str, body_html: str) -> None:
 
 
 def send_magic_link_email(email: str, token: str) -> None:
-    """Send a magic link for passwordless authentication."""
-    link = f"{settings.FRONTEND_URL}/onboard?magic_link_token={token}"
-    subject = "Your Doorbell Health login link"
+    """Send a verification code for passwordless authentication."""
+    subject = "Your Doorbell Health verification code"
     body_html = (
         "<p>Hi,</p>"
-        "<p>Click the link below to access your supplier portal:</p>"
-        f'<p><a href="{link}">{link}</a></p>'
-        f"<p>This link expires in {settings.MAGIC_LINK_EXPIRATION_MINUTES} minutes.</p>"
-        "<p>If you did not request this link, please ignore this email.</p>"
+        "<p>Your verification code is:</p>"
+        f'<p style="font-size:24px;font-weight:bold;letter-spacing:2px;'
+        f'font-family:monospace;background:#f4f4f5;padding:12px 20px;'
+        f'border-radius:8px;display:inline-block;">{token}</p>'
+        "<p>Paste this code into the verification field to continue.</p>"
+        f"<p>This code expires in {settings.MAGIC_LINK_EXPIRATION_MINUTES} minutes.</p>"
+        "<p>If you did not request this code, please ignore this email.</p>"
     )
     _send_email(email, subject, body_html)
 
