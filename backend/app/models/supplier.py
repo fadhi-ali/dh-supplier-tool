@@ -45,10 +45,10 @@ class Supplier(Base):
     tax_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     npi: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
-    primary_contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    primary_contact_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    primary_contact_email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    primary_contact_phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    operations_contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    operations_contact_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    operations_contact_email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    operations_contact_phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     escalation_contact_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     escalation_contact_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)

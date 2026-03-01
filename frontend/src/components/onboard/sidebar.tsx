@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Check, AlertTriangle } from "lucide-react";
 
 export function Sidebar() {
-  const { supplier, currentStep, setCurrentStep, corrections } = useSupplier();
+  const { supplier, currentStep, maxStepReached, setCurrentStep, corrections } = useSupplier();
 
   const visibleSteps = ONBOARDING_STEPS.filter(
     (s) => !s.requiresTier1 || supplier?.tier === "tier_1"
@@ -21,10 +21,10 @@ export function Sidebar() {
           Onboarding Steps
         </p>
         {visibleSteps.map((step) => {
-          const isCompleted = step.number < currentStep;
+          const isCompleted = step.number < maxStepReached;
           const isCurrent = step.number === currentStep;
           const hasCorrection = correctionSteps.has(step.number);
-          const isClickable = step.number <= currentStep || hasCorrection;
+          const isClickable = step.number <= maxStepReached || hasCorrection;
 
           return (
             <button

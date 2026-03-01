@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -47,9 +47,18 @@ export function Step5PayerExclusions() {
   const [scopeMode, setScopeMode] = useState<ScopeMode>("product");
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [categoryInput, setCategoryInput] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [selectedPayerIds, setSelectedPayerIds] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const productCategories = useMemo(() => {
+    const cats = new Set<string>();
+    for (const p of products) {
+      if (p.category) cats.add(p.category);
+    }
+    return Array.from(cats).sort();
+  }, [products]);
 
   const togglePayer = (payerId: string) => {
     setSelectedPayerIds((prev) =>
@@ -59,11 +68,14 @@ export function Step5PayerExclusions() {
     );
   };
 
+  const resolvedCategory =
+    categoryInput === "__custom__" ? customCategory.trim() : categoryInput;
+
   const handleAddExclusions = async () => {
     if (!supplier) return;
     if (selectedPayerIds.length === 0) return;
     if (scopeMode === "product" && !selectedProductId) return;
-    if (scopeMode === "category" && !categoryInput.trim()) return;
+    if (scopeMode === "category" && !resolvedCategory) return;
 
     setIsAdding(true);
     try {
@@ -72,13 +84,14 @@ export function Step5PayerExclusions() {
           payer_id: payerId,
           ...(scopeMode === "product"
             ? { product_id: selectedProductId }
-            : { category: categoryInput.trim() }),
+            : { category: resolvedCategory }),
         });
       }
       await refreshExclusions();
       setSelectedPayerIds([]);
       setSelectedProductId("");
       setCategoryInput("");
+      setCustomCategory("");
     } catch (error) {
       console.error("Failed to add exclusion:", error);
     } finally {
@@ -112,7 +125,7 @@ export function Step5PayerExclusions() {
   const canAdd =
     selectedPayerIds.length > 0 &&
     ((scopeMode === "product" && selectedProductId) ||
-      (scopeMode === "category" && categoryInput.trim()));
+      (scopeMode === "category" && !!resolvedCategory));
 
   return (
     <div className="space-y-6">
@@ -185,11 +198,33 @@ export function Step5PayerExclusions() {
           ) : (
             <div className="space-y-2">
               <Label>Category</Label>
-              <Input
-                placeholder="Enter category name"
+              <Select
                 value={categoryInput}
-                onChange={(e) => setCategoryInput(e.target.value)}
-              />
+                onValueChange={(v) => {
+                  setCategoryInput(v);
+                  if (v !== "__custom__") setCustomCategory("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {productCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__custom__">Other (Custom)...</SelectItem>
+                </SelectContent>
+              </Select>
+              {categoryInput === "__custom__" && (
+                <Input
+                  placeholder="Enter custom category name"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  autoFocus
+                />
+              )}
             </div>
           )}
 

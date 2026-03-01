@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -24,7 +24,10 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StepNavigation } from "@/components/onboard/step-navigation";
 import { useSupplier } from "@/hooks/use-supplier";
-import type { ShippingFeeStructure, ReturnPolicy } from "@/types/supplier";
+import { Button } from "@/components/ui/button";
+import { validateEmail, validatePhone, formatPhone } from "@/lib/validation";
+import { Plus, X } from "lucide-react";
+import type { ShippingFeeStructure, ShippingTier, ReturnPolicy } from "@/types/supplier";
 
 const CONDITION_OPTIONS = ["Unopened", "Defective", "Any Condition"] as const;
 
@@ -33,6 +36,7 @@ export function Step7OperationsSetup() {
 
   const shipping: ShippingFeeStructure = supplier?.shipping_fee_structure ?? {};
   const returnPolicy: ReturnPolicy = supplier?.return_policy ?? {};
+  const [supportErrors, setSupportErrors] = useState<{ email?: string; phone?: string }>({});
 
   const saveShipping = useCallback(
     (patch: Partial<ShippingFeeStructure>) => {
@@ -163,17 +167,101 @@ export function Step7OperationsSetup() {
           )}
 
           {shipping.is_variable && (
-            <div className="space-y-2">
-              <Label htmlFor="fee-schedule">Fee Schedule</Label>
-              <Textarea
-                id="fee-schedule"
-                placeholder="Describe your variable shipping fee schedule (e.g. weight-based tiers, zone pricing, etc.)"
-                rows={4}
-                defaultValue={shipping.fee_schedule ?? ""}
-                onBlur={(e) =>
-                  saveShipping({ fee_schedule: e.target.value || undefined })
-                }
-              />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Weight-Based Shipping Tiers</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const tiers = [...(shipping.shipping_tiers ?? [])];
+                    const lastMax = tiers.length > 0 ? tiers[tiers.length - 1].max_weight : 0;
+                    tiers.push({ min_weight: lastMax, max_weight: lastMax + 10, price: 0 });
+                    saveShippingImmediate({ shipping_tiers: tiers });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Tier
+                </Button>
+              </div>
+
+              {(shipping.shipping_tiers ?? []).length > 0 ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_1fr_1fr_40px] gap-2 text-xs font-medium text-muted-foreground px-1">
+                    <span>Min Weight (lbs)</span>
+                    <span>Max Weight (lbs)</span>
+                    <span>Price ($)</span>
+                    <span />
+                  </div>
+                  {(shipping.shipping_tiers ?? []).map((tier: ShippingTier, idx: number) => (
+                    <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_40px] gap-2">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.1}
+                        defaultValue={tier.min_weight}
+                        onBlur={(e) => {
+                          const tiers = [...(shipping.shipping_tiers ?? [])];
+                          tiers[idx] = { ...tiers[idx], min_weight: Number(e.target.value) || 0 };
+                          saveShipping({ shipping_tiers: tiers });
+                        }}
+                      />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.1}
+                        defaultValue={tier.max_weight}
+                        onBlur={(e) => {
+                          const tiers = [...(shipping.shipping_tiers ?? [])];
+                          tiers[idx] = { ...tiers[idx], max_weight: Number(e.target.value) || 0 };
+                          saveShipping({ shipping_tiers: tiers });
+                        }}
+                      />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        defaultValue={tier.price}
+                        onBlur={(e) => {
+                          const tiers = [...(shipping.shipping_tiers ?? [])];
+                          tiers[idx] = { ...tiers[idx], price: Number(e.target.value) || 0 };
+                          saveShipping({ shipping_tiers: tiers });
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          const tiers = (shipping.shipping_tiers ?? []).filter((_: ShippingTier, i: number) => i !== idx);
+                          saveShippingImmediate({ shipping_tiers: tiers });
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No tiers defined. Click &quot;Add Tier&quot; to create weight-based shipping tiers.
+                </p>
+              )}
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="fee-schedule">Additional Notes (optional)</Label>
+                <Textarea
+                  id="fee-schedule"
+                  placeholder="Any additional shipping notes (e.g. zone pricing, special handling)"
+                  rows={3}
+                  defaultValue={shipping.fee_schedule ?? ""}
+                  onBlur={(e) =>
+                    saveShipping({ fee_schedule: e.target.value || undefined })
+                  }
+                />
+              </div>
             </div>
           )}
         </CardContent>
@@ -319,8 +407,23 @@ export function Step7OperationsSetup() {
                 type="tel"
                 placeholder="e.g. (555) 123-4567"
                 defaultValue={supplier?.support_phone ?? ""}
-                onBlur={(e) => save({ support_phone: e.target.value })}
+                onBlur={(e) => {
+                  const formatted = formatPhone(e.target.value);
+                  e.target.value = formatted;
+                  if (formatted && !validatePhone(formatted)) {
+                    setSupportErrors((prev) => ({ ...prev, phone: "Please enter a valid US phone number" }));
+                  } else {
+                    setSupportErrors((prev) => ({ ...prev, phone: undefined }));
+                  }
+                  save({ support_phone: formatted });
+                }}
+                onChange={() => {
+                  if (supportErrors.phone) setSupportErrors((prev) => ({ ...prev, phone: undefined }));
+                }}
               />
+              {supportErrors.phone && (
+                <p className="text-sm text-destructive">{supportErrors.phone}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="support-email">Email</Label>
@@ -329,8 +432,21 @@ export function Step7OperationsSetup() {
                 type="email"
                 placeholder="e.g. support@company.com"
                 defaultValue={supplier?.support_email ?? ""}
-                onBlur={(e) => save({ support_email: e.target.value })}
+                onBlur={(e) => {
+                  if (e.target.value && !validateEmail(e.target.value)) {
+                    setSupportErrors((prev) => ({ ...prev, email: "Please enter a valid email address" }));
+                  } else {
+                    setSupportErrors((prev) => ({ ...prev, email: undefined }));
+                  }
+                  save({ support_email: e.target.value });
+                }}
+                onChange={() => {
+                  if (supportErrors.email) setSupportErrors((prev) => ({ ...prev, email: undefined }));
+                }}
               />
+              {supportErrors.email && (
+                <p className="text-sm text-destructive">{supportErrors.email}</p>
+              )}
             </div>
           </div>
 
@@ -348,10 +464,22 @@ export function Step7OperationsSetup() {
       </Card>
 
       <StepNavigation onValidate={() => {
-        const hasEmail = !!supplier?.support_email?.trim();
-        const hasPhone = !!supplier?.support_phone?.trim();
-        if (!hasEmail && !hasPhone) {
+        const email = supplier?.support_email?.trim() ?? "";
+        const phone = supplier?.support_phone?.trim() ?? "";
+        if (!email && !phone) {
           toast.error("Please provide at least a support email or phone number.");
+          return false;
+        }
+        const newErrors: { email?: string; phone?: string } = {};
+        if (email && !validateEmail(email)) {
+          newErrors.email = "Please enter a valid email address";
+        }
+        if (phone && !validatePhone(phone)) {
+          newErrors.phone = "Please enter a valid US phone number";
+        }
+        setSupportErrors(newErrors);
+        if (newErrors.email || newErrors.phone) {
+          toast.error("Please fix validation errors before continuing.");
           return false;
         }
         return true;

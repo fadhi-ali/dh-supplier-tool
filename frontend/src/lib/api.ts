@@ -274,8 +274,8 @@ export const adminApi = {
       suppliers: Array<{
         id: string;
         company_name: string | null;
-        primary_contact_name: string | null;
-        primary_contact_email: string | null;
+        operations_contact_name: string | null;
+        operations_contact_email: string | null;
         tier: string | null;
         status: string;
         current_step: number;
@@ -334,10 +334,10 @@ export interface AdminSupplierDetail {
   company_address: string | null;
   tax_id: string | null;
   npi: string | null;
-  primary_contact_name: string | null;
-  primary_contact_title: string | null;
-  primary_contact_email: string | null;
-  primary_contact_phone: string | null;
+  operations_contact_name: string | null;
+  operations_contact_title: string | null;
+  operations_contact_email: string | null;
+  operations_contact_phone: string | null;
   escalation_contact_name: string | null;
   escalation_contact_title: string | null;
   escalation_contact_email: string | null;

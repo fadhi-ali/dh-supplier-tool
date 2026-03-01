@@ -7,10 +7,10 @@ export interface Supplier {
   company_address: string | null;
   tax_id: string | null;
   npi: string | null;
-  primary_contact_name: string | null;
-  primary_contact_title: string | null;
-  primary_contact_email: string | null;
-  primary_contact_phone: string | null;
+  operations_contact_name: string | null;
+  operations_contact_title: string | null;
+  operations_contact_email: string | null;
+  operations_contact_phone: string | null;
   escalation_contact_name: string | null;
   escalation_contact_title: string | null;
   escalation_contact_email: string | null;
@@ -45,11 +45,18 @@ export type SupplierStatus =
   | "approved"
   | "live";
 
+export interface ShippingTier {
+  min_weight: number;
+  max_weight: number;
+  price: number;
+}
+
 export interface ShippingFeeStructure {
   free_shipping_threshold?: number;
   flat_rate?: number;
   is_variable?: boolean;
   fee_schedule?: string;
+  shipping_tiers?: ShippingTier[];
 }
 
 export interface ReturnPolicy {

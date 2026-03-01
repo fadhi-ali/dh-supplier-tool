@@ -68,10 +68,25 @@ Rules:
 def parse_csv_or_excel(file_path: str) -> str:
     """Read CSV or Excel into a string representation."""
     path = Path(file_path)
+
+    if path.stat().st_size == 0:
+        raise ValueError("The uploaded file is empty.")
+
     if path.suffix.lower() == ".csv":
-        df = pd.read_csv(file_path)
+        # Try common encodings and auto-detect delimiter
+        for encoding in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                df = pd.read_csv(file_path, encoding=encoding, sep=None, engine="python")
+                break
+            except Exception:
+                continue
+        else:
+            raise ValueError("Could not read CSV file — unsupported encoding or format.")
     else:
         df = pd.read_excel(file_path)
+
+    if df.empty:
+        raise ValueError("The uploaded file contains no data rows.")
 
     # Truncate to first 500 rows to stay within token limits
     if len(df) > 500:
@@ -266,8 +281,8 @@ async def process_catalog(upload_id: UUID, supplier_id: UUID) -> None:
             await db.commit()
             logger.info("Catalog processing completed for upload %s", upload_id)
 
-        except Exception:
-            logger.exception("Catalog processing failed for upload %s", upload_id)
+        except Exception as exc:
+            logger.exception("Catalog processing failed for upload %s: %s", upload_id, exc)
             # Mark as failed
             try:
                 result = await db.execute(

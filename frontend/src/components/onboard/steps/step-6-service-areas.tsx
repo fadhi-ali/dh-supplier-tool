@@ -332,7 +332,7 @@ export function Step6ServiceAreas() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Standard Delivery (business days)</Label>
+                    <Label>Standard Delivery (business days) <span className="text-destructive">*</span></Label>
                     <Input
                       type="number"
                       min={1}
@@ -361,7 +361,7 @@ export function Step6ServiceAreas() {
                     e.stopPropagation();
                     handleSaveState(abbr);
                   }}
-                  disabled={savingState === abbr}
+                  disabled={savingState === abbr || !data.standardDays}
                 >
                   {savingState === abbr ? "Saving..." : "Save"}
                 </Button>

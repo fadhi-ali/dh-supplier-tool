@@ -70,7 +70,7 @@ def send_submission_confirmation(supplier: Supplier) -> None:
     """Notify supplier that their application has been submitted."""
     subject = "Your onboarding application has been submitted"
     body_html = (
-        f"<p>Hi {supplier.primary_contact_name or 'there'},</p>"
+        f"<p>Hi {supplier.operations_contact_name or 'there'},</p>"
         f"<p>Your application for <strong>{supplier.company_name or 'your company'}</strong> "
         "has been submitted and is now under review.</p>"
         "<p>We'll notify you of any updates.</p>"
@@ -84,7 +84,7 @@ def send_status_update(supplier: Supplier, new_status: str) -> None:
     status_display = new_status.replace("_", " ").title()
     subject = f"Your onboarding status has been updated to: {status_display}"
     body_html = (
-        f"<p>Hi {supplier.primary_contact_name or 'there'},</p>"
+        f"<p>Hi {supplier.operations_contact_name or 'there'},</p>"
         f"<p>The status of your onboarding application for "
         f"<strong>{supplier.company_name or 'your company'}</strong> "
         f"has been updated to: <strong>{status_display}</strong>.</p>"
@@ -98,7 +98,7 @@ def send_correction_request(supplier: Supplier, corrections: list[Correction]) -
     subject = "Action needed on your onboarding application"
     items = "".join(f"<li><strong>Step {c.step_number}:</strong> {c.comment}</li>" for c in corrections)
     body_html = (
-        f"<p>Hi {supplier.primary_contact_name or 'there'},</p>"
+        f"<p>Hi {supplier.operations_contact_name or 'there'},</p>"
         f"<p>Corrections have been requested for your "
         f"<strong>{supplier.company_name or 'your company'}</strong> application:</p>"
         f"<ul>{items}</ul>"
@@ -112,7 +112,7 @@ def send_approval_notification(supplier: Supplier) -> None:
     """Notify supplier that their application has been approved."""
     subject = "Congratulations! Your onboarding has been approved"
     body_html = (
-        f"<p>Hi {supplier.primary_contact_name or 'there'},</p>"
+        f"<p>Hi {supplier.operations_contact_name or 'there'},</p>"
         f"<p>Great news! Your onboarding application for "
         f"<strong>{supplier.company_name or 'your company'}</strong> has been approved.</p>"
         "<p>Our team will be in touch shortly to finalize going live.</p>"

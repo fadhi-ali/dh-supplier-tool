@@ -35,8 +35,8 @@ class RequestCorrectionsBody(BaseModel):
 class AdminSupplierListItem(BaseModel):
     id: UUID
     company_name: Optional[str] = None
-    primary_contact_name: Optional[str] = None
-    primary_contact_email: Optional[str] = None
+    operations_contact_name: Optional[str] = None
+    operations_contact_email: Optional[str] = None
     tier: Optional[str] = None
     status: str
     current_step: int
@@ -104,10 +104,10 @@ class AdminSupplierDetail(BaseModel):
     company_address: Optional[str] = None
     tax_id: Optional[str] = None
     npi: Optional[str] = None
-    primary_contact_name: Optional[str] = None
-    primary_contact_title: Optional[str] = None
-    primary_contact_email: Optional[str] = None
-    primary_contact_phone: Optional[str] = None
+    operations_contact_name: Optional[str] = None
+    operations_contact_title: Optional[str] = None
+    operations_contact_email: Optional[str] = None
+    operations_contact_phone: Optional[str] = None
     escalation_contact_name: Optional[str] = None
     escalation_contact_title: Optional[str] = None
     escalation_contact_email: Optional[str] = None

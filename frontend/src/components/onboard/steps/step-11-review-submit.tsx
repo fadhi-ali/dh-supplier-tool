@@ -86,11 +86,11 @@ export function Step11ReviewSubmit() {
         message: "Company name and address are required",
       });
     }
-    if (!supplier.primary_contact_name || !supplier.primary_contact_email) {
+    if (!supplier.operations_contact_name || !supplier.operations_contact_email) {
       issues.push({
         step: 1,
         label: "Company Information",
-        message: "Primary contact name and email are required",
+        message: "Operations contact name and email are required",
       });
     }
 
@@ -413,16 +413,16 @@ export function Step11ReviewSubmit() {
           <ReviewRow label="NPI" value={supplier.npi} />
           <Separator className="my-2" />
           <ReviewRow
-            label="Primary Contact"
-            value={supplier.primary_contact_name}
+            label="Operations Contact"
+            value={supplier.operations_contact_name}
           />
           <ReviewRow
-            label="Primary Email"
-            value={supplier.primary_contact_email}
+            label="Operations Email"
+            value={supplier.operations_contact_email}
           />
           <ReviewRow
-            label="Primary Phone"
-            value={supplier.primary_contact_phone}
+            label="Operations Phone"
+            value={supplier.operations_contact_phone}
           />
           <Separator className="my-2" />
           <ReviewRow

@@ -21,6 +21,7 @@ export function SupplierProvider({
   const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
   const [corrections, setCorrections] = useState<CorrectionNote[]>([]);
   const [currentStep, setCurrentStep] = useState(initialSupplier.current_step);
+  const [maxStepReached, setMaxStepReached] = useState(initialSupplier.current_step);
 
   const { save, saveStatus, flush } = useAutoSave(supplier?.id);
 
@@ -112,9 +113,12 @@ export function SupplierProvider({
   const wrappedSetStep = useCallback(
     (step: number) => {
       setCurrentStep(step);
-      save({ current_step: step }, true);
+      if (step > maxStepReached) {
+        setMaxStepReached(step);
+        save({ current_step: step }, true);
+      }
     },
-    [save]
+    [save, maxStepReached]
   );
 
   return (
@@ -127,6 +131,7 @@ export function SupplierProvider({
         serviceAreas,
         corrections,
         currentStep,
+        maxStepReached,
         setCurrentStep: wrappedSetStep,
         refreshSupplier,
         refreshProducts,

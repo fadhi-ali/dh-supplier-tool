@@ -23,10 +23,18 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StepNavigation } from "@/components/onboard/step-navigation";
 import { useSupplier } from "@/hooks/use-supplier";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { DME_CATEGORY_NAMES } from "@/lib/constants";
 import {
   Upload,
   FileSpreadsheet,
@@ -34,6 +42,7 @@ import {
   Plus,
   Sparkles,
   X,
+  Check,
 } from "lucide-react";
 import type { Product } from "@/types/supplier";
 
@@ -338,8 +347,16 @@ export function Step3ProductCatalog() {
   };
 
   const onValidate = useCallback((): boolean => {
-    return products.length > 0;
-  }, [products.length]);
+    if (products.length === 0) {
+      toast.error("Please add at least one product to your catalog.");
+      return false;
+    }
+    if (!products.some((p) => p.approved_by_supplier)) {
+      toast.error("Please approve your catalog before continuing.");
+      return false;
+    }
+    return true;
+  }, [products]);
 
   return (
     <div className="space-y-6">
@@ -404,6 +421,9 @@ export function Step3ProductCatalog() {
                 Extracting products, HCPCS codes, pricing, and categories. This
                 may take a moment.
               </p>
+              <div className="w-full max-w-xs mt-4 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full w-1/3 bg-primary rounded-full animate-indeterminate" />
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-green-500/50 bg-green-50 dark:bg-green-950/20 p-10">
@@ -456,24 +476,14 @@ export function Step3ProductCatalog() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[180px]">
-                      Product Name
-                    </TableHead>
-                    <TableHead className="min-w-[100px]">HCPCS Code</TableHead>
-                    <TableHead className="min-w-[120px]">Category</TableHead>
-                    <TableHead className="min-w-[100px]">
-                      Retail Price
-                    </TableHead>
-                    <TableHead className="min-w-[100px]">
-                      Variant/Size
-                    </TableHead>
-                    <TableHead className="min-w-[200px]">
-                      Fulfillment Type
-                    </TableHead>
-                    <TableHead className="min-w-[100px]">SKU</TableHead>
-                    <TableHead className="min-w-[120px]">
-                      Manufacturer
-                    </TableHead>
+                    <TableHead>Product Name</TableHead>
+                    <TableHead>HCPCS Code</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Retail Price</TableHead>
+                    <TableHead>Variant/Size</TableHead>
+                    <TableHead>Fulfillment Type</TableHead>
+                    <TableHead className="hidden lg:table-cell">SKU</TableHead>
+                    <TableHead className="hidden lg:table-cell">Manufacturer</TableHead>
                     <TableHead className="w-[50px]" />
                   </TableRow>
                 </TableHeader>
@@ -555,7 +565,7 @@ export function Step3ProductCatalog() {
                           })}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <EditableCell
                           value={product.sku ?? ""}
                           onChange={(v) =>
@@ -564,7 +574,7 @@ export function Step3ProductCatalog() {
                           confidence={product.ai_confidence?.sku}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <EditableCell
                           value={product.manufacturer ?? ""}
                           onChange={(v) =>
@@ -590,15 +600,24 @@ export function Step3ProductCatalog() {
             </div>
 
             <div className="mt-4 flex justify-end">
-              <Button
-                onClick={handleApprove}
-                disabled={products.length === 0 || approving}
-              >
-                {approving && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
-                Approve Catalog
-              </Button>
+              {products.every((p) => p.approved_by_supplier) ? (
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 gap-1 px-3 py-1.5 text-sm">
+                  <Check className="h-4 w-4" />
+                  Catalog Approved
+                </Badge>
+              ) : (
+                <Button
+                  onClick={handleApprove}
+                  disabled={products.length === 0 || approving}
+                >
+                  {approving && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
+                  Approve{products.some((p) => p.approved_by_supplier)
+                    ? ` Remaining (${products.filter((p) => !p.approved_by_supplier).length})`
+                    : " Catalog"}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -662,17 +681,23 @@ export function Step3ProductCatalog() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new_category">Category</Label>
-                <Input
-                  id="new_category"
+                <Select
                   value={newProduct.category}
-                  onChange={(e) =>
-                    setNewProduct((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
+                  onValueChange={(v) =>
+                    setNewProduct((prev) => ({ ...prev, category: v }))
                   }
-                  placeholder="e.g. Respiratory/CPAP"
-                />
+                >
+                  <SelectTrigger id="new_category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DME_CATEGORY_NAMES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -779,7 +804,7 @@ export function Step3ProductCatalog() {
         </DialogContent>
       </Dialog>
 
-      <StepNavigation onValidate={onValidate} />
+      <StepNavigation onValidate={onValidate} disabled={uploadStatus === "uploading" || uploadStatus === "processing"} />
     </div>
   );
 }

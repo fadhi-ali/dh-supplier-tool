@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { StepNavigation } from "@/components/onboard/step-navigation";
 import { useSupplier } from "@/hooks/use-supplier";
+import { validateEmail, validatePhone, formatPhone } from "@/lib/validation";
 
 interface FieldErrors {
   company_name?: string;
   tax_id?: string;
   npi?: string;
-  primary_contact_name?: string;
-  primary_contact_email?: string;
-  primary_contact_phone?: string;
+  operations_contact_name?: string;
+  operations_contact_email?: string;
+  operations_contact_phone?: string;
   escalation_contact_email?: string;
+  escalation_contact_phone?: string;
 }
 
 export function Step1CompanyInfo() {
@@ -42,10 +44,10 @@ export function Step1CompanyInfo() {
     setCompanyAddress(supplier.company_address ?? "");
     setTaxId(formatTaxId(supplier.tax_id ?? ""));
     setNpi(supplier.npi ?? "");
-    setPrimaryContactName(supplier.primary_contact_name ?? "");
-    setPrimaryContactTitle(supplier.primary_contact_title ?? "");
-    setPrimaryContactEmail(supplier.primary_contact_email ?? "");
-    setPrimaryContactPhone(supplier.primary_contact_phone ?? "");
+    setPrimaryContactName(supplier.operations_contact_name ?? "");
+    setPrimaryContactTitle(supplier.operations_contact_title ?? "");
+    setPrimaryContactEmail(supplier.operations_contact_email ?? "");
+    setPrimaryContactPhone(supplier.operations_contact_phone ?? "");
     setEscalationContactName(supplier.escalation_contact_name ?? "");
     setEscalationContactTitle(supplier.escalation_contact_title ?? "");
     setEscalationContactEmail(supplier.escalation_contact_email ?? "");
@@ -80,10 +82,6 @@ export function Step1CompanyInfo() {
     }
   }
 
-  function validateEmail(email: string): boolean {
-    return email.includes("@");
-  }
-
   function validateField(field: keyof FieldErrors, value: string) {
     const newErrors = { ...errors };
 
@@ -104,11 +102,11 @@ export function Step1CompanyInfo() {
           newErrors.npi = undefined;
         }
         break;
-      case "primary_contact_email":
+      case "operations_contact_email":
         if (value.length > 0 && !validateEmail(value)) {
-          newErrors.primary_contact_email = "Please enter a valid email address";
+          newErrors.operations_contact_email = "Please enter a valid email address";
         } else {
-          newErrors.primary_contact_email = undefined;
+          newErrors.operations_contact_email = undefined;
         }
         break;
       case "escalation_contact_email":
@@ -116,6 +114,20 @@ export function Step1CompanyInfo() {
           newErrors.escalation_contact_email = "Please enter a valid email address";
         } else {
           newErrors.escalation_contact_email = undefined;
+        }
+        break;
+      case "operations_contact_phone":
+        if (value.length > 0 && !validatePhone(value)) {
+          newErrors.operations_contact_phone = "Please enter a valid US phone number";
+        } else {
+          newErrors.operations_contact_phone = undefined;
+        }
+        break;
+      case "escalation_contact_phone":
+        if (value.length > 0 && !validatePhone(value)) {
+          newErrors.escalation_contact_phone = "Please enter a valid US phone number";
+        } else {
+          newErrors.escalation_contact_phone = undefined;
         }
         break;
       default:
@@ -153,18 +165,30 @@ export function Step1CompanyInfo() {
     }
 
     if (!primaryContactName.trim()) {
-      newErrors.primary_contact_name = "Primary contact name is required";
+      newErrors.operations_contact_name = "Operations contact name is required";
     }
 
     if (!primaryContactEmail.trim()) {
-      newErrors.primary_contact_email = "Primary contact email is required";
+      newErrors.operations_contact_email = "Operations contact email is required";
     } else if (!validateEmail(primaryContactEmail)) {
-      newErrors.primary_contact_email = "Please enter a valid email address";
+      newErrors.operations_contact_email = "Please enter a valid email address";
+    }
+
+    if (primaryContactPhone.trim() && !validatePhone(primaryContactPhone)) {
+      newErrors.operations_contact_phone = "Please enter a valid US phone number";
+    }
+
+    if (escalationContactEmail.trim() && !validateEmail(escalationContactEmail)) {
+      newErrors.escalation_contact_email = "Please enter a valid email address";
+    }
+
+    if (escalationContactPhone.trim() && !validatePhone(escalationContactPhone)) {
+      newErrors.escalation_contact_phone = "Please enter a valid US phone number";
     }
 
     setErrors(newErrors);
     return Object.values(newErrors).every((v) => v === undefined);
-  }, [companyName, taxId, npi, primaryContactName, primaryContactEmail]);
+  }, [companyName, taxId, npi, primaryContactName, primaryContactEmail, primaryContactPhone, escalationContactEmail, escalationContactPhone]);
 
   return (
     <div className="space-y-6">
@@ -261,45 +285,45 @@ export function Step1CompanyInfo() {
       {/* Primary Contact Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Primary Contact</CardTitle>
+          <CardTitle>Operations Contact</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="primary_contact_name">
+            <Label htmlFor="operations_contact_name">
               Name <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="primary_contact_name"
+              id="operations_contact_name"
               value={primaryContactName}
               onChange={(e) => {
                 setPrimaryContactName(e.target.value);
-                if (errors.primary_contact_name) {
+                if (errors.operations_contact_name) {
                   setErrors((prev) => ({
                     ...prev,
-                    primary_contact_name: undefined,
+                    operations_contact_name: undefined,
                   }));
                 }
               }}
               onBlur={() =>
-                handleBlur("primary_contact_name", primaryContactName)
+                handleBlur("operations_contact_name", primaryContactName)
               }
               placeholder="Full name"
             />
-            {errors.primary_contact_name && (
+            {errors.operations_contact_name && (
               <p className="text-sm text-destructive">
-                {errors.primary_contact_name}
+                {errors.operations_contact_name}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="primary_contact_title">Title</Label>
+            <Label htmlFor="operations_contact_title">Title</Label>
             <Input
-              id="primary_contact_title"
+              id="operations_contact_title"
               value={primaryContactTitle}
               onChange={(e) => setPrimaryContactTitle(e.target.value)}
               onBlur={() =>
-                handleBlur("primary_contact_title", primaryContactTitle)
+                handleBlur("operations_contact_title", primaryContactTitle)
               }
               placeholder="e.g. CEO, Operations Manager"
             />
@@ -307,47 +331,60 @@ export function Step1CompanyInfo() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="primary_contact_email">
+              <Label htmlFor="operations_contact_email">
                 Email <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="primary_contact_email"
+                id="operations_contact_email"
                 type="email"
                 value={primaryContactEmail}
                 onChange={(e) => {
                   setPrimaryContactEmail(e.target.value);
-                  if (errors.primary_contact_email) {
+                  if (errors.operations_contact_email) {
                     setErrors((prev) => ({
                       ...prev,
-                      primary_contact_email: undefined,
+                      operations_contact_email: undefined,
                     }));
                   }
                 }}
                 onBlur={() => {
-                  validateField("primary_contact_email", primaryContactEmail);
-                  handleBlur("primary_contact_email", primaryContactEmail);
+                  validateField("operations_contact_email", primaryContactEmail);
+                  handleBlur("operations_contact_email", primaryContactEmail);
                 }}
                 placeholder="email@company.com"
               />
-              {errors.primary_contact_email && (
+              {errors.operations_contact_email && (
                 <p className="text-sm text-destructive">
-                  {errors.primary_contact_email}
+                  {errors.operations_contact_email}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="primary_contact_phone">Phone</Label>
+              <Label htmlFor="operations_contact_phone">Phone</Label>
               <Input
-                id="primary_contact_phone"
+                id="operations_contact_phone"
                 type="tel"
                 value={primaryContactPhone}
-                onChange={(e) => setPrimaryContactPhone(e.target.value)}
-                onBlur={() =>
-                  handleBlur("primary_contact_phone", primaryContactPhone)
-                }
+                onChange={(e) => {
+                  setPrimaryContactPhone(e.target.value);
+                  if (errors.operations_contact_phone) {
+                    setErrors((prev) => ({ ...prev, operations_contact_phone: undefined }));
+                  }
+                }}
+                onBlur={() => {
+                  const formatted = formatPhone(primaryContactPhone);
+                  setPrimaryContactPhone(formatted);
+                  validateField("operations_contact_phone", formatted);
+                  handleBlur("operations_contact_phone", formatted);
+                }}
                 placeholder="(555) 123-4567"
               />
+              {errors.operations_contact_phone && (
+                <p className="text-sm text-destructive">
+                  {errors.operations_contact_phone}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -426,15 +463,25 @@ export function Step1CompanyInfo() {
                 id="escalation_contact_phone"
                 type="tel"
                 value={escalationContactPhone}
-                onChange={(e) => setEscalationContactPhone(e.target.value)}
-                onBlur={() =>
-                  handleBlur(
-                    "escalation_contact_phone",
-                    escalationContactPhone
-                  )
-                }
+                onChange={(e) => {
+                  setEscalationContactPhone(e.target.value);
+                  if (errors.escalation_contact_phone) {
+                    setErrors((prev) => ({ ...prev, escalation_contact_phone: undefined }));
+                  }
+                }}
+                onBlur={() => {
+                  const formatted = formatPhone(escalationContactPhone);
+                  setEscalationContactPhone(formatted);
+                  validateField("escalation_contact_phone", formatted);
+                  handleBlur("escalation_contact_phone", formatted);
+                }}
                 placeholder="(555) 123-4567"
               />
+              {errors.escalation_contact_phone && (
+                <p className="text-sm text-destructive">
+                  {errors.escalation_contact_phone}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

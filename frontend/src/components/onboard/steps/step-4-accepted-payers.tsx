@@ -22,21 +22,60 @@ import { api } from "@/lib/api";
 import { Search, Plus, X, Loader2 } from "lucide-react";
 
 const PREPOPULATED_PAYERS = [
+  // National Payers
   "Aetna",
   "UnitedHealthcare",
-  "BlueCross BlueShield",
   "Humana",
   "Cigna",
-  "Medicare",
-  "Medicaid",
   "Anthem",
-  "Molina",
   "Centene",
+  "Molina Healthcare",
   "Kaiser Permanente",
   "WellCare",
   "Carefirst",
   "Highmark",
   "Health Net",
+  // Government
+  "Medicare",
+  "Medicaid",
+  "Tricare",
+  "VA (Veterans Affairs)",
+  // Regional BCBS Plans
+  "BlueCross BlueShield",
+  "BCBS of Texas",
+  "BCBS of Illinois",
+  "BCBS of Florida (Florida Blue)",
+  "BCBS of Michigan",
+  "BCBS of North Carolina",
+  "BCBS of Tennessee",
+  "BCBS of Georgia",
+  "BCBS of Minnesota",
+  "BCBS of Massachusetts",
+  "BCBS of Alabama",
+  "BCBS of South Carolina",
+  "BCBS of Louisiana",
+  "BCBS of Kansas City",
+  "Independence Blue Cross (PA)",
+  "Horizon BCBS (NJ)",
+  "Regence BCBS (OR/WA)",
+  "Premera Blue Cross (WA)",
+  // Other National / Large Regional
+  "Amerigroup",
+  "Magellan Health",
+  "Oscar Health",
+  "Ambetter",
+  "Bright Health",
+  "Clover Health",
+  "EmblemHealth",
+  "Tufts Health Plan",
+  "Priority Health",
+  "SelectHealth",
+  "UPMC Health Plan",
+  "Geisinger Health Plan",
+  "Medical Mutual of Ohio",
+  "Blue KC",
+  "AvMed",
+  "Capital Blue Cross",
 ];
 
 const NETWORK_TYPES = [
@@ -60,9 +99,9 @@ export function Step4AcceptedPayers() {
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  // Filter suggestions based on search query
+  // Filter suggestions based on search query (show all when empty)
   const filteredSuggestions = useMemo(() => {
-    if (!searchQuery.trim()) return [];
+    if (!searchQuery.trim()) return PREPOPULATED_PAYERS;
     const query = searchQuery.toLowerCase();
     return PREPOPULATED_PAYERS.filter((payer) =>
       payer.toLowerCase().includes(query)
@@ -189,8 +228,8 @@ export function Step4AcceptedPayers() {
               </div>
 
               {/* Suggestions */}
-              {filteredSuggestions.length > 0 && (
-                <div className="rounded-md border">
+              {filteredSuggestions.length > 0 ? (
+                <div className="rounded-md border max-h-[300px] overflow-y-auto">
                   {filteredSuggestions.map((payer, idx) => (
                     <button
                       key={payer}
@@ -205,9 +244,7 @@ export function Step4AcceptedPayers() {
                     </button>
                   ))}
                 </div>
-              )}
-
-              {searchQuery.trim() && filteredSuggestions.length === 0 && (
+              ) : (
                 <p className="text-sm text-muted-foreground py-2">
                   No matching payers found.
                 </p>

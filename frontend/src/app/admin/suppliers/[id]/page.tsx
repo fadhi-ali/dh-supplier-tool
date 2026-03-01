@@ -293,10 +293,10 @@ export default function AdminSupplierDetailPage() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Primary Contact</p>
-            <Field label="Name" value={supplier.primary_contact_name} />
-            <Field label="Email" value={supplier.primary_contact_email} />
-            <Field label="Phone" value={supplier.primary_contact_phone} />
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Operations Contact</p>
+            <Field label="Name" value={supplier.operations_contact_name} />
+            <Field label="Email" value={supplier.operations_contact_email} />
+            <Field label="Phone" value={supplier.operations_contact_phone} />
           </div>
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-2">Escalation Contact</p>

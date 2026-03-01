@@ -41,8 +41,8 @@ const STATUS_COLORS: Record<string, string> = {
 interface SupplierRow {
   id: string;
   company_name: string | null;
-  primary_contact_name: string | null;
-  primary_contact_email: string | null;
+  operations_contact_name: string | null;
+  operations_contact_email: string | null;
   tier: string | null;
   status: string;
   current_step: number;
@@ -213,7 +213,7 @@ export default function AdminPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Company Name</TableHead>
-                <TableHead>Primary Contact</TableHead>
+                <TableHead>Operations Contact</TableHead>
                 <TableHead>Tier</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Submitted</TableHead>
@@ -232,9 +232,9 @@ export default function AdminPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-sm">{s.primary_contact_name || "—"}</p>
-                      {s.primary_contact_email && (
-                        <p className="text-xs text-muted-foreground">{s.primary_contact_email}</p>
+                      <p className="text-sm">{s.operations_contact_name || "—"}</p>
+                      {s.operations_contact_email && (
+                        <p className="text-xs text-muted-foreground">{s.operations_contact_email}</p>
                       )}
                     </div>
                   </TableCell>

@@ -24,6 +24,7 @@ export interface SupplierContextValue {
   serviceAreas: ServiceArea[];
   corrections: CorrectionNote[];
   currentStep: number;
+  maxStepReached: number;
   setCurrentStep: (step: number) => void;
   refreshSupplier: () => Promise<void>;
   refreshProducts: () => Promise<void>;

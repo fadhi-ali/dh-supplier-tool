@@ -6,9 +6,10 @@ import { ONBOARDING_STEPS } from "@/types/supplier";
 
 interface StepNavigationProps {
   onValidate?: () => boolean;
+  disabled?: boolean;
 }
 
-export function StepNavigation({ onValidate }: StepNavigationProps) {
+export function StepNavigation({ onValidate, disabled }: StepNavigationProps) {
   const { supplier, currentStep, setCurrentStep, flush } = useSupplier();
 
   const visibleSteps = ONBOARDING_STEPS.filter(
@@ -38,12 +39,12 @@ export function StepNavigation({ onValidate }: StepNavigationProps) {
       <Button
         variant="outline"
         onClick={handleBack}
-        disabled={isFirst}
+        disabled={isFirst || disabled}
       >
         Back
       </Button>
       {!isLast && (
-        <Button onClick={handleContinue}>
+        <Button onClick={handleContinue} disabled={disabled}>
           Continue
         </Button>
       )}
