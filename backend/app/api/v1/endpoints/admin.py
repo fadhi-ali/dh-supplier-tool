@@ -7,7 +7,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -42,20 +42,27 @@ async def verify_admin(x_admin_password: str = Header(...)) -> None:
 @router.get("/suppliers", response_model=AdminSupplierListResponse)
 async def list_suppliers(
     status: Optional[str] = None,
+    limit: int = 25,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
     _: None = Depends(verify_admin),
 ):
-    """List all suppliers with optional status filter."""
-    query = select(Supplier).order_by(Supplier.submitted_at.desc().nulls_last(), Supplier.updated_at.desc())
+    """List suppliers with optional status filter and pagination."""
+    base_query = select(Supplier).order_by(Supplier.submitted_at.desc().nulls_last(), Supplier.updated_at.desc())
 
     if status and status != "all":
         try:
             status_enum = SupplierStatus(status)
-            query = query.where(Supplier.status == status_enum)
+            base_query = base_query.where(Supplier.status == status_enum)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
 
-    result = await db.execute(query)
+    # Total count before pagination
+    count_result = await db.execute(select(func.count()).select_from(base_query.subquery()))
+    total = count_result.scalar() or 0
+
+    # Apply pagination
+    result = await db.execute(base_query.offset(offset).limit(limit))
     suppliers = result.scalars().all()
 
     items = []
@@ -72,7 +79,7 @@ async def list_suppliers(
             updated_at=s.updated_at,
         ))
 
-    return AdminSupplierListResponse(suppliers=items, total=len(items))
+    return AdminSupplierListResponse(suppliers=items, total=total)
 
 
 @router.post("/suppliers/invite")

@@ -54,10 +54,11 @@ export function Step8OrderTransmittal() {
   const transmittalDestination = supplier?.transmittal_destination ?? "";
 
   const handleSelectPreference = (value: TransmittalPreference) => {
-    save({ order_transmittal_preference: value }, true);
+    const fields: Record<string, unknown> = { order_transmittal_preference: value };
     if (value === "api") {
-      save({ transmittal_destination: "" }, true);
+      fields.transmittal_destination = "";
     }
+    save(fields, true);
   };
 
   const validate = (): boolean => {

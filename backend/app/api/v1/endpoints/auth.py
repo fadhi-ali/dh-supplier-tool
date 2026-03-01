@@ -4,7 +4,7 @@ import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,8 +27,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _set_auth_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key="dh_access_token",
+        value=token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=settings.JWT_EXPIRATION_MINUTES * 60,
+        path="/",
+    )
+
+
+def _clear_auth_cookie(response: Response) -> None:
+    response.delete_cookie(key="dh_access_token", path="/")
+
+
 @router.post("/verify-token", response_model=VerifyTokenResponse)
-async def verify_token(body: VerifyTokenRequest, db: AsyncSession = Depends(get_db)):
+async def verify_token(body: VerifyTokenRequest, response: Response, db: AsyncSession = Depends(get_db)):
     """Validate an invite token and return supplier context."""
     result = await db.execute(
         select(Supplier).where(Supplier.invite_token == body.invite_token)
@@ -41,6 +57,7 @@ async def verify_token(body: VerifyTokenRequest, db: AsyncSession = Depends(get_
     access_token = None
     if supplier.email_verified:
         access_token = create_access_token(supplier.id)
+        _set_auth_cookie(response, access_token)
 
     return VerifyTokenResponse(
         supplier_id=supplier.id,
@@ -77,7 +94,7 @@ async def send_magic_link(body: SendMagicLinkRequest, db: AsyncSession = Depends
 
 
 @router.post("/verify-magic-link", response_model=VerifyMagicLinkResponse)
-async def verify_magic_link(body: VerifyMagicLinkRequest, db: AsyncSession = Depends(get_db)):
+async def verify_magic_link(body: VerifyMagicLinkRequest, response: Response, db: AsyncSession = Depends(get_db)):
     """Verify a magic link token and return a JWT session."""
     result = await db.execute(
         select(Supplier).where(Supplier.magic_link_token == body.token)
@@ -100,6 +117,7 @@ async def verify_magic_link(body: VerifyMagicLinkRequest, db: AsyncSession = Dep
     await db.commit()
 
     access_token = create_access_token(supplier.id)
+    _set_auth_cookie(response, access_token)
 
     return VerifyMagicLinkResponse(
         access_token=access_token,
@@ -109,8 +127,17 @@ async def verify_magic_link(body: VerifyMagicLinkRequest, db: AsyncSession = Dep
 
 @router.post("/refresh", response_model=RefreshTokenResponse)
 async def refresh_token(
+    response: Response,
     current_supplier: Supplier = Depends(get_current_supplier),
 ):
     """Exchange a valid JWT for a fresh one with extended expiry."""
     new_token = create_access_token(current_supplier.id)
+    _set_auth_cookie(response, new_token)
     return RefreshTokenResponse(access_token=new_token)
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    """Clear the auth cookie."""
+    _clear_auth_cookie(response)
+    return {"message": "Logged out"}

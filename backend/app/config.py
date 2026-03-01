@@ -1,4 +1,8 @@
+import os
+
 from pydantic_settings import BaseSettings
+
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Settings(BaseSettings):
@@ -11,7 +15,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 1440  # 24 hours
     MAGIC_LINK_EXPIRATION_MINUTES: int = 15
-    UPLOAD_DIR: str = "uploads"
+    UPLOAD_DIR: str = os.path.join(_BASE_DIR, "uploads")
     ADMIN_PASSWORD: str = "doorbell-ops-2024"
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587

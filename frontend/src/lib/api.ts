@@ -34,6 +34,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
+    credentials: "include",
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }));
@@ -110,6 +111,7 @@ export const api = {
       method: "POST",
       headers,
       body: formData,
+      credentials: "include",
     });
     if (!res.ok) throw new Error("Upload failed");
     return res.json() as Promise<import("@/types/supplier").CatalogUpload>;
@@ -252,7 +254,7 @@ function adminRequest<T>(path: string, password: string, options?: RequestInit):
     "x-admin-password": password,
     ...(options?.headers as Record<string, string>),
   };
-  return fetch(`${API_BASE}${path}`, { ...options, headers }).then(async (res) => {
+  return fetch(`${API_BASE}${path}`, { ...options, headers, credentials: "include" }).then(async (res) => {
     if (!res.ok) {
       const error = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(error.detail || "Request failed");
@@ -263,8 +265,12 @@ function adminRequest<T>(path: string, password: string, options?: RequestInit):
 }
 
 export const adminApi = {
-  listSuppliers: (password: string, status?: string) =>
-    adminRequest<{
+  listSuppliers: (password: string, status?: string, limit = 25, offset = 0) => {
+    const params = new URLSearchParams();
+    if (status && status !== "all") params.set("status", status);
+    params.set("limit", String(limit));
+    params.set("offset", String(offset));
+    return adminRequest<{
       suppliers: Array<{
         id: string;
         company_name: string | null;
@@ -277,7 +283,8 @@ export const adminApi = {
         updated_at: string;
       }>;
       total: number;
-    }>(`/admin/suppliers${status && status !== "all" ? `?status=${status}` : ""}`, password),
+    }>(`/admin/suppliers?${params.toString()}`, password);
+  },
 
   inviteSupplier: (password: string, email: string) =>
     adminRequest<{

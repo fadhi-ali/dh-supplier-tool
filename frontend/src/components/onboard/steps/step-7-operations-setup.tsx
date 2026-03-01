@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -346,7 +347,15 @@ export function Step7OperationsSetup() {
         </CardContent>
       </Card>
 
-      <StepNavigation />
+      <StepNavigation onValidate={() => {
+        const hasEmail = !!supplier?.support_email?.trim();
+        const hasPhone = !!supplier?.support_phone?.trim();
+        if (!hasEmail && !hasPhone) {
+          toast.error("Please provide at least a support email or phone number.");
+          return false;
+        }
+        return true;
+      }} />
     </div>
   );
 }

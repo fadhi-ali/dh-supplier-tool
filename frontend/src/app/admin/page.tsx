@@ -56,6 +56,9 @@ export default function AdminPage() {
   const [suppliers, setSuppliers] = useState<SupplierRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const PAGE_SIZE = 25;
 
   // Invite state
   const [showInvite, setShowInvite] = useState(false);
@@ -68,8 +71,11 @@ export default function AdminPage() {
   function loadSuppliers() {
     setLoading(true);
     adminApi
-      .listSuppliers(password, activeTab)
-      .then((data) => setSuppliers(data.suppliers))
+      .listSuppliers(password, activeTab, PAGE_SIZE, page * PAGE_SIZE)
+      .then((data) => {
+        setSuppliers(data.suppliers);
+        setTotal(data.total);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }
@@ -77,7 +83,7 @@ export default function AdminPage() {
   useEffect(() => {
     loadSuppliers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [password, activeTab]);
+  }, [password, activeTab, page]);
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return;
@@ -180,7 +186,7 @@ export default function AdminPage() {
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
+            onClick={() => { setActiveTab(tab.value); setPage(0); }}
             className={cn(
               "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
               activeTab === tab.value
@@ -258,6 +264,31 @@ export default function AdminPage() {
               ))}
             </TableBody>
           </Table>
+          {total > PAGE_SIZE && (
+            <div className="flex items-center justify-between border-t px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                Showing {page * PAGE_SIZE + 1}&ndash;{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={(page + 1) * PAGE_SIZE >= total}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
